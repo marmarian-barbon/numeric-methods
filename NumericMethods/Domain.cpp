@@ -8,7 +8,7 @@ namespace NumericMethods
 		double_t end,
 		size_t count,
 		bool createHalfStepOffset,
-		std::function<double_t(double_t)> const& valuesFunction) :
+		const std::function<double_t(size_t index, double_t coordinate)>& valuesFunction) :
 		Begin(begin),
 		End(end),
 		Count(count),
@@ -23,7 +23,7 @@ namespace NumericMethods
 		for (size_t index = 0; index < this->Count; ++index)
 		{
 			this->Points[index] = firstPoint + (index * this->Step);
-			this->Values[index] = valuesFunction(this->Points[index]);
+			this->Values[index] = valuesFunction(index, this->Points[index]);
 		}
 	}
 }

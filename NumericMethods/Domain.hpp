@@ -26,7 +26,7 @@ namespace NumericMethods
 			double_t end,
 			size_t count,
 			bool createHalfStepOffset,
-			std::function<double_t(double_t)> const& valuesFunction
+			const std::function<double_t(size_t index, double_t coordinate)>& valuesFunction
 		);
 	};
 }
