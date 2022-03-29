@@ -62,6 +62,27 @@ namespace NumericMethods
 		return OrderedSolutions(std::move(baseDifferencedSolutions), std::move(exactSolutions), std::move(taggedSolutions));
 	}
 
+	std::map<std::wstring, double_t> SolutionComparer::MeterSolutionOrders(
+		const DifferencedSolutions& coarseSolutions,
+		const DifferencedSolutions& accurateSolutions,
+		const std::set<std::wstring>& tags,
+		double_t multiplier)
+	{
+		auto&& result = std::map<std::wstring, double_t>();
+		for (auto tag : tags)
+		{
+			auto order = MeterAccuracyOrder(
+				coarseSolutions.TaggedDifferencedSolutions.at(tag).Difference,
+				accurateSolutions.TaggedDifferencedSolutions.at(tag).Difference,
+				multiplier
+			);
+
+			result.emplace(tag, order);
+		}
+
+		return result;
+	}
+
 	double_t SolutionComparer::MeterSolutionsDifference(const Domain& exactSolution, const Domain& calculatedSolution)
 	{
 		if (exactSolution.Count != calculatedSolution.Count)

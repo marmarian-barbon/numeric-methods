@@ -33,6 +33,13 @@ namespace NumericMethods
 			const std::vector<size_t>& countMultipliers
 		);
 
+		static std::map<std::wstring, double_t> MeterSolutionOrders(
+			const DifferencedSolutions& coarseSolutions,
+			const DifferencedSolutions& accurateSolutions,
+			const std::set<std::wstring>& tags,
+			double_t multiplier
+		);
+
 	private:
 		static double_t MeterSolutionsDifference(const Domain& exactSolution, const Domain& calculatedSolution);
 
