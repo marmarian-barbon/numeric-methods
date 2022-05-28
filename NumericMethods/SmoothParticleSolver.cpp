@@ -1,52 +1,67 @@
 #include "stdafx.h"
 #include "SmoothParticleSolver.hpp"
 
-#include "Kernels.h"
-
 namespace NumericMethods
 {
-	SmoothParticleSolver::SmoothParticleSolver(double_t particleRadius, std::function<double_t(double_t kernel)>&& derivatedKernel) :
+	SmoothParticleSolver::SmoothParticleSolver(double_t particleRadius, std::function<ValueType(ValueType kernel)>&& derivatedKernel) :
 		particleRadius(particleRadius),
 		derivatedKernel(derivatedKernel)
 	{ }
 
-	Domain SmoothParticleSolver::Solve(double_t begin, double_t end, const std::function<double_t(double_t)>& fieldFunction, size_t count) const
+	Domain<ValueType> SmoothParticleSolver::Solve(const Domain<double_t>& domain) const
 	{
-		auto step = (end - begin) / count;
-		auto additionalSidePointsCount = static_cast<ptrdiff_t>(std::trunc(this->particleRadius / step));
-		auto additionalSidePointsFullCount = static_cast<size_t>(std::abs(additionalSidePointsCount) + 1);
-		auto additionalSideFullLength = additionalSidePointsFullCount * step;
+		auto stepHeight = domain.Height.Step;
+		auto additionalHeightSidePointsCount = ptrdiff_t(std::trunc(this->particleRadius / stepHeight));
+		auto additionalHeightSidePointsFullCount = size_t(std::abs(additionalHeightSidePointsCount) + 1);
+		auto additionalHeightSideFullLength = additionalHeightSidePointsFullCount * stepHeight;
 
-		auto field = Domain(
-			begin - additionalSideFullLength,
-			end + additionalSideFullLength,
-			count + 1 + (2 * additionalSidePointsFullCount),
-			false,
-			[&](size_t index, double_t coordinate) { return fieldFunction(coordinate); }
-		);
+		auto stepWidth = domain.Width.Step;
+		auto additionalWidthSidePointsCount = ptrdiff_t(std::trunc(this->particleRadius / stepWidth));
+		auto additionalWidthSidePointsFullCount = size_t(std::abs(additionalWidthSidePointsCount) + 1);
+		auto additionalWidthSideFullLength = additionalWidthSidePointsFullCount * stepWidth;
 
-		auto calculatedDerivatedKernel = std::vector<double_t>(additionalSidePointsFullCount);
-		for (size_t overIndex = 0; overIndex < additionalSidePointsFullCount; ++overIndex)
-		{
-			auto positiveRadius = (overIndex + 0.5) * field.Step;
-			calculatedDerivatedKernel[overIndex] = this->derivatedKernel(positiveRadius);
-		}
+		auto constrictDimension = [](const Dimension& expanded, double_t additionalSideFullLength, size_t additionalSidePointsFullCount) {
+			return Dimension(
+				expanded.Begin + additionalSideFullLength,
+				expanded.End - additionalSideFullLength,
+				expanded.Count - 1 - (2 * additionalSidePointsFullCount),
+				true
+			);
+		};
 
-		return Domain(
-			begin,
-			end,
-			count,
-			true,
-			[&calculatedDerivatedKernel, &field, coveredPointsCount = additionalSidePointsFullCount](size_t index, double_t coordinate) {
-				auto result = 0.;
-				auto interestParticleIndex = coveredPointsCount + index;
-				for (auto neighbourParticleIndexShift = 0; neighbourParticleIndexShift < coveredPointsCount; ++neighbourParticleIndexShift)
+		auto volume = stepHeight * stepWidth;
+
+		return Domain<ValueType>(
+			constrictDimension(domain.Height, additionalHeightSideFullLength, additionalHeightSidePointsFullCount),
+			constrictDimension(domain.Width, additionalWidthSideFullLength, additionalWidthSidePointsFullCount),
+			[this, particleRadius = this->particleRadius, volume, &domain](double_t widthCoordinate, double_t heightCoordinate)
+			{
+				auto result = ValueType({ 0, 0 });
+				for (size_t i = 0; i < domain.Height.Count; ++i)
 				{
-					result += field.Values[interestParticleIndex - neighbourParticleIndexShift] * calculatedDerivatedKernel[neighbourParticleIndexShift];
-					result -= field.Values[interestParticleIndex + 1 + neighbourParticleIndexShift] * calculatedDerivatedKernel[neighbourParticleIndexShift];
+					if (std::abs(heightCoordinate - domain.Height.Coordinates[i]) > particleRadius)
+					{
+						continue;
+					}
+
+					for (size_t j = 0; j < domain.Width.Count; ++j)
+					{
+						if (std::abs(widthCoordinate - domain.Width.Coordinates[j]) > particleRadius)
+						{
+							continue;
+						}
+
+						auto cellDerivative = this->derivatedKernel({
+							widthCoordinate - domain.Width.Coordinates[j],
+							heightCoordinate - domain.Height.Coordinates[i],
+						});
+
+						result[0] += domain.Values[i][j] * cellDerivative[0];
+						result[1] += domain.Values[i][j] * cellDerivative[1];
+					}
 				}
 
-				return result * field.Step;
+				return ValueType({ result[0] * volume, result[1] * volume });
 			}
 		);
 	}

@@ -10,12 +10,12 @@ namespace NumericMethods
 	private:
 		double_t particleRadius;
 
-		std::function<double_t(double_t kernel)> derivatedKernel;
+		std::function<ValueType(ValueType kernel)> derivatedKernel;
 
 	public:
-		SmoothParticleSolver(double_t particleSize, std::function<double_t(double_t kernel)>&& derivatedKernel);
+		SmoothParticleSolver(double_t particleSize, std::function<ValueType(ValueType kernel)>&& derivatedKernel);
 
 	public:
-		Domain Solve(double_t begin, double_t end, const std::function<double_t(double_t)>& fieldFunction, size_t count) const override;
+		Domain<ValueType> Solve(const Domain<double_t>& domain) const override;
 	};
 }

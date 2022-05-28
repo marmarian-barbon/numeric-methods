@@ -39,16 +39,7 @@
     <ClCompile Include="SolutionComparer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DifferencedSolution.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OrderedSolutions.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OrderedSolution.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DifferencedSolutions.cpp">
+    <ClCompile Include="Dimension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -74,16 +65,10 @@
     <ClInclude Include="SolutionComparer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DifferencedSolution.hpp">
+    <ClInclude Include="Dimension.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OrderedSolutions.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OrderedSolution.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DifferencedSolutions.hpp">
+    <ClInclude Include="Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

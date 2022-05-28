@@ -9,6 +9,6 @@ namespace NumericMethods
 	class DivergenceSolver : public BaseSolver
 	{
 	public:
-		Domain Solve(double_t begin, double_t end, const std::function<double_t(double_t)>& fieldFunction, size_t count) const override;
+		Domain<ValueType> Solve(const Domain<double_t>& domain) const override;
 	};
 }

@@ -1,32 +1,57 @@
 #pragma once
 #include "stdafx.h"
 
+#include "Dimension.hpp"
+
 namespace NumericMethods
 {
+	template <class ValueType>
 	struct Domain
 	{
+		using ValueFunction = std::function<ValueType(double_t widthCoordinate, double_t heightCoordinate)>;
+
+		using ValueVector = std::vector<std::vector<ValueType>>;
+
 	public:
-		double_t Begin;
+		Dimension Height;
 
-		double_t End;
+		Dimension Width;
 
-		size_t Count;
-
-		double_t Length;
-
-		double_t Step;
-
-		std::vector<double_t> Points;
-
-		std::vector<double_t> Values;
+		ValueVector Values;
 
 	public:
 		Domain(
-			double_t begin,
-			double_t end,
-			size_t count,
-			bool createHalfStepOffset,
-			const std::function<double_t(size_t index, double_t coordinate)>& valuesFunction
-		);
+			const Dimension& height,
+			const Dimension& width,
+			const ValueFunction& valueFunction) :
+			Height(height),
+			Width(width),
+			Values(createValues(valueFunction))
+		{ }
+
+		Domain(
+			Dimension&& height,
+			Dimension&& width,
+			const ValueFunction& valueFunction) :
+			Height(std::move(height)),
+			Width(std::move(width)),
+			Values(createValues(valueFunction))
+		{ }
+
+	private:
+		ValueVector createValues(const ValueFunction& valueFunction)
+		{
+			auto result = ValueVector(this->Height.Count);
+			for (size_t i = 0; i < this->Height.Count; ++i)
+			{
+				result[i] = std::vector<ValueType>(this->Width.Count);
+				for (size_t j = 0; j < this->Width.Count; ++j)
+				{
+					result[i][j] = valueFunction(this->Width.Coordinates[j], this->Height.Coordinates[i]);
+				}
+			}
+
+			return result;
+		}
 	};
 }

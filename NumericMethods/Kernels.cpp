@@ -3,27 +3,58 @@
 
 namespace NumericMethods
 {
-	std::function<double_t(double_t radius)> DerivatedCubicBSpline(double_t smoothingLength)
+	ValueType scaleVector(double_t scalar, const ValueType& vector)
 	{
-		auto main = (1 / smoothingLength) / smoothingLength;
+		return ValueType({ vector[0] * scalar, vector[1] * scalar });
+	}
 
-		return [=](double_t radius) {
-			auto smoothedRadius = radius / smoothingLength;
-			auto sign = smoothedRadius >= 0
-				? +1.
-				: -1.;
+	std::function<ValueType(const ValueType& radius)> DerivatedCubicBSpline(double_t particleRadius)
+	{
+		auto smoothingLength = particleRadius / 2;
+		constexpr auto core = 15. / (7. * std::numbers::pi_v<double_t>);
+		auto main = core / std::pow(smoothingLength, 3.);
 
-			auto smoothedLength = std::abs(sign * smoothedRadius);
+		return [=](ValueType radius) {
+			auto length = std::sqrt(
+				(radius[0] * radius[0]) +
+				(radius[1] * radius[1])
+			);
 
-			if (smoothedLength < 1) {
-				return sign * main * ((-2. * smoothedLength) + ((3. / 2.) * std::pow(smoothedLength, 2.)));
+			auto smoothedLength = length / smoothingLength;
+
+			if (smoothedLength <= 1) {
+				return scaleVector((main / length) * ((-2. * smoothedLength) + ((3. / 2.) * std::pow(smoothedLength, 2.))), radius);
 			}
 
-			if (smoothedLength < 2) {
-				return sign * main * (-1. / 2.) * std::pow(2. - smoothedLength, 2);
+			if (smoothedLength <= 2) {
+				return scaleVector((main / length) * (-1. / 2.) * std::pow(2. - smoothedLength, 2), radius);
 			}
 
-			return 0.;
+			return ValueType({ 0., 0. });
+		};
+	}
+
+	std::function<ValueType(const ValueType& radius)> DerivatedTwoSinuses(double_t particleRadius)
+	{
+		auto pi = std::numbers::pi_v<double_t>;
+		auto k = 2.;
+		auto h = particleRadius / k;
+		auto core = pi / (((3 * pi * pi) - 16) * std::pow(k * h, 2));
+		auto main = core / h;
+
+		return [=](ValueType radius) {
+			auto length = std::sqrt(
+				(radius[0] * radius[0]) +
+				(radius[1] * radius[1])
+			);
+
+			auto q = length / h;
+
+			if (q <= k) {
+				return scaleVector((main / length) * (-2 * pi * (std::sin(2 * pi * q / k) + (2 * std::sin(pi * q / k))) / k), radius);
+			}
+
+			return ValueType({ 0., 0. });
 		};
 	}
 }
